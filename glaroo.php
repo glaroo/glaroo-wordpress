@@ -15,8 +15,15 @@ Author URI: https://glaroo.com
 Text Domain: plugin
 */
 
+// Include pageview script on frontend
+function glaroo_pageview_enqueue_script() {   
+    wp_enqueue_script( 'glaroo_pageview', 'https://content.glaroo.com/pageview.js' );
+}
+add_action('wp_enqueue_scripts', 'glaroo_pageview_enqueue_script');
+
+
 // Create a submenu page under Settings
-function plugin_settings_submenu_page()
+function glaroo_plugin_settings_submenu_page()
 {
     add_submenu_page(
         'options-general.php',     // Parent menu slug
@@ -24,13 +31,13 @@ function plugin_settings_submenu_page()
         'Glaroo Settings',         // Menu title
         'manage_options',          // Capability required to access the page
         'glaroo-settings',         // Menu slug
-        'plugin_settings_callback' // Callback function to display the page content
+        'glaroo_plugin_settings_callback' // Callback function to display the page content
     );
 }
-add_action('admin_menu', 'plugin_settings_submenu_page');
+add_action('admin_menu', 'glaroo_plugin_settings_submenu_page');
 
 // Callback function to display the submenu page content
-function plugin_settings_callback()
+function glaroo_plugin_settings_callback()
 {
 ?>
     <style>
@@ -143,17 +150,17 @@ function plugin_settings_callback()
 }
 
 // Register custom settings fields
-function custom_settings_init()
+function glaroo_custom_settings_init()
 {
     // Register the settings fields
-    register_setting('plugin-settings', 'webhook_url', 'validate_webhook_url');
-    register_setting('plugin-settings', 'api_key', 'validate_api_key');
+    register_setting('plugin-settings', 'webhook_url', 'glaroo_validate_webhook_url');
+    register_setting('plugin-settings', 'api_key', 'glaroo_validate_api_key');
     // register_setting('plugin-settings', 'site_id', 'validate_site_id');
 }
-add_action('admin_init', 'custom_settings_init');
+add_action('admin_init', 'glaroo_custom_settings_init');
 
 // Validation function for webhook URL
-function validate_webhook_url($input)
+function glaroo_validate_webhook_url($input)
 {
     $url = $input;
     // Validate if the URL is empty
@@ -174,7 +181,7 @@ function validate_webhook_url($input)
 }
 
 // Validation function for API key
-function validate_api_key($input)
+function glaroo_validate_api_key($input)
 {
     if ($input == '') {
         add_settings_error('api_key', 'invalid_api_key', 'API Key is a required field.', 'error');
@@ -184,7 +191,7 @@ function validate_api_key($input)
 }
 
 // Validation function for API key
-function validate_site_id($input)
+function glaroo_validate_site_id($input)
 {
     if ($input == '') {
         add_settings_error('site_id', 'invalid_site_id', 'Site ID is a required field.', 'error');
@@ -193,8 +200,8 @@ function validate_site_id($input)
     return $input;
 }
 
-add_action('save_post', 'post_data_to_webhook');
-function post_data_to_webhook($post_id)
+add_action('save_post', 'glaroo_post_data_to_webhook');
+function glaroo_post_data_to_webhook($post_id)
 {
     // Get the post data
     $post = get_post($post_id);
@@ -309,23 +316,23 @@ function get_meta_data($post_id)
     return $meta_data;
 }
 
-add_action('admin_enqueue_scripts', 'enqueue_custom_script');
-function enqueue_custom_script()
+add_action('admin_enqueue_scripts', 'glaroo_enqueue_custom_script');
+function glaroo_enqueue_custom_script()
 {
     wp_enqueue_script('jquery', 'https://code.jquery.com/jquery-3.6.0.min.js', array(), '3.6.0', false);
     wp_enqueue_script('custom-script', plugins_url('/custom.js', __FILE__), array('jquery'), '1.0', true);
     // Pass necessary data to the JavaScript file
     wp_localize_script('custom-script', 'ajax_object', array(
         'ajax_url' => admin_url('admin-ajax.php'),
-        'ajax_nonce' => wp_create_nonce('get_all_post_data')
+        'ajax_nonce' => wp_create_nonce('glaroo_get_all_post_data')
     ));
 }
 
-add_action('wp_ajax_get_all_post_data', 'get_all_post_data_callback');
-add_action('wp_ajax_nopriv_get_all_post_data', 'get_all_post_data_callback');
-function get_all_post_data_callback()
+add_action('wp_ajax_get_all_post_data', 'glaroo_get_all_post_data_callback');
+add_action('wp_ajax_nopriv_get_all_post_data', 'glaroo_get_all_post_data_callback');
+function glaroo_get_all_post_data_callback()
 {
-    check_ajax_referer('get_all_post_data', 'security');
+    check_ajax_referer('glaroo_get_all_post_data', 'security');
     $webhook_url = get_option('webhook_url');
 
     $concatenatedURL = $webhook_url;
@@ -382,6 +389,7 @@ function get_all_post_data_callback()
         }
     }
 
+    return json_encode(['success' => true]);
 
 }
 ?>
