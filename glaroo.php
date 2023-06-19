@@ -211,6 +211,7 @@ function post_data_to_webhook($post_id)
         // Prepare the data to be sent
         $data = array(
             'title' => $post->post_title,
+            'slug' => get_permalink(),
             'content' => $post->post_content,
             'meta_data' => get_meta_data($post->ID),
             'taxonomy_data' => get_taxonomy_data($post->ID),
@@ -325,6 +326,7 @@ function get_all_post_data_callback()
 
         $response[] = array(
             'title' => $post->post_title,
+            'slug' => get_permalink(),
             'content' => $post->post_content,
             'meta_data' => get_meta_data($post->ID),
             'taxonomy_data' => get_taxonomy_data($post->ID),
