@@ -53,6 +53,40 @@ function plugin_settings_callback()
         p.submit {
             display: contents;
         }
+
+        #message-container {
+    margin-top: 10px;
+}
+
+.in-progress-message,
+.success-message,
+.error-message {
+    padding: 10px;
+    border-radius: 4px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.in-progress-message {
+    /* background-color: #ffc107;
+    color: #fff; */
+    width:200px;
+}
+
+.success-message {
+    background-color: #28a745;
+    color: #fff;
+    width: 160px;
+}
+
+.error-message {
+    background-color: #dc3545;
+    color: #fff;
+    width: 160px;
+}
+.d-none{
+    display:none;
+}
     </style>
 
     <div class="wrap">
@@ -71,25 +105,32 @@ function plugin_settings_callback()
                     <th scope="row">Webhook URL:</th>
                     <td><input type="text" placeholder="Enter webhook URL" size="35" name="webhook_url" value="<?php echo esc_attr(get_option('webhook_url')); ?>" /></td>
                 </tr>
-                <!-- <tr valign="top">
+                <tr valign="top">
                     <th scope="row">API Key:</th>
                     <td><input type="text" placeholder="Enter API key" name="api_key" value="<?php echo esc_attr(get_option('api_key')); ?>" /></td>
-                </tr> -->
-                <tr valign="top">
-                    <th scope="row">Site ID:</th>
-                    <td><input type="text" placeholder="Enter Site ID" name="site_id" value="<?php echo esc_attr(get_option('site_id')); ?>" /></td>
                 </tr>
+                <!-- <tr valign="top">
+                    <th scope="row">Site ID:</th>
+                    <td><input type="text" placeholder="Enter Site ID" name="site_id" value="<?php // echo esc_attr(get_option('site_id')); ?>" /></td>
+                </tr> -->
             </table>
             <?php submit_button(); ?>
         </form>
     </div>
     <br><br>
     <div class="wrap">
-    <h1>Bulk Post Data</h1>
-    <p>Hit the button to bulk post data.</p>
+        <?php $plugin_dir_path = plugin_dir_url( __FILE__ ); ?>
+        <h1>Bulk Post Data</h1>
+        <p>Hit the button to bulk post data.</p>
         <p class="submit">
-                <input type="button" name="postdata" id="postdata" class="button button-primary" value="Bulk Post Data">
-            </p> </div>
+            <input type="button" name="postdata" id="postdata" class="button button-primary" value="Bulk Post Data">
+            <img id="loader" class="d-none" src="<?php echo  $plugin_dir_path; ?>/images/spinner.gif">
+            <div id="message-container">
+                <p class="d-none" class="in-progress-message"></p>
+            </div>
+        </p>
+
+    </div>
 <?php
 }
 
@@ -98,8 +139,8 @@ function custom_settings_init()
 {
     // Register the settings fields
     register_setting('plugin-settings', 'webhook_url', 'validate_webhook_url');
-    // register_setting('plugin-settings', 'api_key', 'validate_api_key');
-    register_setting('plugin-settings', 'site_id', 'validate_site_id');
+    register_setting('plugin-settings', 'api_key', 'validate_api_key');
+    // register_setting('plugin-settings', 'site_id', 'validate_site_id');
 }
 add_action('admin_init', 'custom_settings_init');
 
@@ -205,8 +246,8 @@ function post_data_to_webhook($post_id)
         } else {
             // The request was successful, you can handle the response if needed
             $response_code = wp_remote_retrieve_response_code($response);
-            $response_body = wp_remote_retrieve_body($response);
-            return;
+            return $response_body = wp_remote_retrieve_body($response);
+
         }
     }
 }
@@ -256,6 +297,7 @@ function get_meta_data($post_id)
 add_action('admin_enqueue_scripts', 'enqueue_custom_script');
 function enqueue_custom_script()
 {
+    wp_enqueue_script('jquery', 'https://code.jquery.com/jquery-3.6.0.min.js', array(), '3.6.0', false);
     wp_enqueue_script('custom-script', plugins_url('/custom.js', __FILE__), array('jquery'), '1.0', true);
     // Pass necessary data to the JavaScript file
     wp_localize_script('custom-script', 'ajax_object', array(
@@ -323,7 +365,7 @@ function get_all_post_data_callback()
         // The request was successful, you can handle the response if needed
         $response_code = wp_remote_retrieve_response_code($response);
         $response_body = wp_remote_retrieve_body($response);
-        return;
+        return $response_body;
     }
 }
 ?>
