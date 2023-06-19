@@ -350,7 +350,7 @@ function get_all_post_data_callback()
     $webhook_url = get_option('webhook_url');
     $site_id = get_option('site_id');
 
-    $concatenatedURL = $webhook_url . $site_id;
+    $concatenatedURL = $webhook_url;
 
     // Send the data to the webhook URL using wp_remote_post()
     $response = wp_remote_post($concatenatedURL, $args);
