@@ -5,13 +5,13 @@
  */
 /*
 Plugin Name: Glaroo
-Plugin URI: https://www.impingesolutions.com/
-Description: To get started: activate the Plugin plugin and then go to your Plugin Settings page to set up your webhook and other information.
+Plugin URI: https://glaroo.com
+Description: To get started: activate the Plugin plugin and then go to your Plugin Settings page to set up your webhook and other information. Glaroo aggregates data for better data-informed decisions
 Version: 1.0
 Requires at least: 5.0
 Requires PHP: 5.2
-Author: Impinge Solutions
-Author URI: https://www.impingesolutions.com/
+Author: Glaroo
+Author URI: https://glaroo.com
 Text Domain: plugin
 */
 
@@ -92,6 +92,14 @@ function plugin_settings_callback()
     <div class="wrap">
         <h1>Glaroo Settings</h1>
         <p>Enter below details for connecting with the Webhook.</p>
+
+        <h2>Get a Glaroo Account</h2>
+        <p><em>This plugin requires a Glaroo account in order to aggregate data and provide insights. Please sign up below.</em></p>
+
+        <h3>What is Glaroo?</h3>
+        <p>Glaroo is a data aggregation and insights platform. You provide your data from Wordpress, GA, Search Console, etc and we aggregate it all together in a seamless platform. We provide better insights on better data.</p>
+
+        <p><strong><a href="https://glaroo.com" title="glaroo">Register for a free Glaroo account</a></strong></p>
 
         <form method="post" action="options.php">
             <?php
@@ -191,24 +199,14 @@ function post_data_to_webhook($post_id)
     // Get the post data
     $post = get_post($post_id);
 
-    $custom_post_types = get_post_types(array(
-        'public' => true,
-        'publicly_queryable' => true,
-        '_builtin' => false
-    ));
 
-    // Check if it's a new post or post update
-    if (($post->post_status == 'publish' && ($post->post_type == 'post' || $post->post_type == 'page'))
-        || ($post->post_status == 'publish' && wp_is_post_revision($post_id))
-        || ($post->post_status == 'publish' && in_array($post->post_type, $custom_post_types))
-    ) {
+    if ($post->post_status == 'publish') 
+    {
         // Get the webhook URL from the options
         $webhook_url = get_option('webhook_url');
         $site_id = get_option('site_id');
 
         $concatenatedURL = $webhook_url;
-        // print_r($concatenatedURL); die;
-        // $concatenatedURL = "https://api.glaroo.com/wordpress/35";
 
         // Prepare the data to be sent
         $data = array(
@@ -220,11 +218,11 @@ function post_data_to_webhook($post_id)
             'publish_date' => $post->post_date,
             'post_type' => get_post_type($post->ID),
         );
-        // wp_send_json_success($data); die;
+        
 
         // Create a new HTTP POST request
         $args = array(
-            'body' => wp_send_json($data),
+            'body' => json_encode($data),
             'timeout' => '60',
             'redirection' => '5',
             'httpversion' => '1.0',
@@ -234,7 +232,6 @@ function post_data_to_webhook($post_id)
             )
         );
 
-        error_log("POST REQUEST: " . $concatenatedURL);
         
         // Send the data to the webhook URL using wp_remote_post()
         $response = wp_remote_post($concatenatedURL, $args);
@@ -250,7 +247,8 @@ function post_data_to_webhook($post_id)
             $response_code = wp_remote_retrieve_response_code($response);
             
             $response_body = wp_remote_retrieve_body($response);
-            error_log('Webhook passed: ' . $response_body);
+            
+            return $response_body;
         }
     }
 }
@@ -341,7 +339,7 @@ function get_all_post_data_callback()
 
     // Create a new HTTP POST request
     $args = array(
-        'body' => wp_send_json($response),
+        'body' => json_encode($response),
         'timeout' => '60',
         'redirection' => '5',
         'httpversion' => '1.0',
@@ -355,23 +353,23 @@ function get_all_post_data_callback()
 
     $concatenatedURL = $webhook_url;
 
-        error_log("POST REQUEST: " . $concatenatedURL);
         
-        // Send the data to the webhook URL using wp_remote_post()
-        $response = wp_remote_post($concatenatedURL, $args);
+    // Send the data to the webhook URL using wp_remote_post()
+    $response = wp_remote_post($concatenatedURL, $args);
 
         // Check if the request was successful
-        if (is_wp_error($response)) {
-            // Handle the error
-            wp_send_json_error($response->get_error_message());
-            error_log('Webhook request failed: ' . $response->get_error_message());
-            return;
-        } else {
+    if (is_wp_error($response)) {
+        // Handle the error
+        wp_send_json_error($response->get_error_message());
+        error_log('Webhook request failed: ' . $response->get_error_message());
+        return;
+    } else {
             // The request was successful, you can handle the response if needed
             $response_code = wp_remote_retrieve_response_code($response);
             
             $response_body = wp_remote_retrieve_body($response);
-            error_log('Webhook passed: ' . $response_body);
+
+            return $response_body;
         }
 }
 ?>
