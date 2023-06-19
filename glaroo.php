@@ -200,7 +200,17 @@ function post_data_to_webhook($post_id)
     $post = get_post($post_id);
 
 
-    if ($post->post_status == 'publish') 
+    $custom_post_types = get_post_types(array(
+        'public' => true,
+        'publicly_queryable' => true,
+        '_builtin' => false
+    ));
+
+    // Check if it's a new post or post update
+    if (($post->post_status == 'publish' && ($post->post_type == 'post' || $post->post_type == 'page'))
+        || ($post->post_status == 'publish' && wp_is_post_revision($post_id))
+        || ($post->post_status == 'publish' && in_array($post->post_type, $custom_post_types))
+    ) 
     {
         // Get the webhook URL from the options
         $webhook_url = get_option('webhook_url');
@@ -214,7 +224,6 @@ function post_data_to_webhook($post_id)
         $data = array(
             'title' => $post->post_title,
             'slug' => $relativeSlug,
-            'content' => $post->post_content,
             'meta_data' => get_meta_data($post->ID),
             'taxonomy_data' => get_taxonomy_data($post->ID),
             'author_data' => get_author_data($post->post_author),
@@ -254,6 +263,8 @@ function post_data_to_webhook($post_id)
             return $response_body;
         }
     }
+
+    return json_encode(["success" => true]);
 }
 
 // Taxonomy data
@@ -315,6 +326,10 @@ add_action('wp_ajax_nopriv_get_all_post_data', 'get_all_post_data_callback');
 function get_all_post_data_callback()
 {
     check_ajax_referer('get_all_post_data', 'security');
+    $webhook_url = get_option('webhook_url');
+
+    $concatenatedURL = $webhook_url;
+
 
     // Get all post data
     $posts = get_posts(array(
@@ -323,29 +338,23 @@ function get_all_post_data_callback()
     ));
 
     // Prepare the response
-    $response = array();
     foreach ($posts as $post) {
         $permalink = get_permalink($post->ID);
         $relativeSlug = wp_make_link_relative($permalink);
 
-        $response[] = array(
+        $data = array(
             'title' => $post->post_title,
             'slug' => $relativeSlug,
-            'content' => $post->post_content,
             'meta_data' => get_meta_data($post->ID),
             'taxonomy_data' => get_taxonomy_data($post->ID),
             'author_data' => get_author_data($post->post_author),
             'publish_date' => $post->post_date,
             'post_type' => get_post_type($post->ID),
         );
-    }
-
-    // Send the response as JSON
-    //wp_send_json($response);
-
+        
     // Create a new HTTP POST request
     $args = array(
-        'body' => json_encode($response),
+        'body' => json_encode($data),
         'timeout' => '60',
         'redirection' => '5',
         'httpversion' => '1.0',
@@ -354,12 +363,9 @@ function get_all_post_data_callback()
             'Content-Type' => 'application/json'
         )
     );
-    $webhook_url = get_option('webhook_url');
-    $site_id = get_option('site_id');
-
-    $concatenatedURL = $webhook_url;
 
         
+
     // Send the data to the webhook URL using wp_remote_post()
     $response = wp_remote_post($concatenatedURL, $args);
 
@@ -368,14 +374,14 @@ function get_all_post_data_callback()
         // Handle the error
         wp_send_json_error($response->get_error_message());
         error_log('Webhook request failed: ' . $response->get_error_message());
-        return;
     } else {
             // The request was successful, you can handle the response if needed
             $response_code = wp_remote_retrieve_response_code($response);
             
             $response_body = wp_remote_retrieve_body($response);
-
-            return $response_body;
         }
+    }
+
+
 }
 ?>
