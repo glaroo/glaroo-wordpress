@@ -234,6 +234,8 @@ function post_data_to_webhook($post_id)
             )
         );
 
+        error_log("POST REQUEST: " . $concatenatedURL);
+        
         // Send the data to the webhook URL using wp_remote_post()
         $response = wp_remote_post($concatenatedURL, $args);
 
@@ -242,12 +244,13 @@ function post_data_to_webhook($post_id)
             // Handle the error
             wp_send_json_error($response->get_error_message());
             return;
-            // error_log('Webhook request failed: ' . $response->get_error_message());
+            error_log('Webhook request failed: ' . $response->get_error_message());
         } else {
             // The request was successful, you can handle the response if needed
             $response_code = wp_remote_retrieve_response_code($response);
-            return $response_body = wp_remote_retrieve_body($response);
-
+            
+            $response_body = wp_remote_retrieve_body($response);
+            error_log('Webhook passed: ' . $response_body);
         }
     }
 }
@@ -352,20 +355,24 @@ function get_all_post_data_callback()
 
     $concatenatedURL = $webhook_url;
 
-    // Send the data to the webhook URL using wp_remote_post()
-    $response = wp_remote_post($concatenatedURL, $args);
+        error_log("POST REQUEST: " . $concatenatedURL);
+        
+        // Send the data to the webhook URL using wp_remote_post()
+        $response = wp_remote_post($concatenatedURL, $args);
 
-    // Check if the request was successful
-    if (is_wp_error($response)) {
-        // Handle the error
-        wp_send_json_error($response->get_error_message());
-        return;
-        // error_log('Webhook request failed: ' . $response->get_error_message());
-    } else {
-        // The request was successful, you can handle the response if needed
-        $response_code = wp_remote_retrieve_response_code($response);
-        $response_body = wp_remote_retrieve_body($response);
-        return $response_body;
+        // Check if the request was successful
+        if (is_wp_error($response)) {
+            // Handle the error
+            wp_send_json_error($response->get_error_message());
+            return;
+            error_log('Webhook request failed: ' . $response->get_error_message());
+        } else {
+            // The request was successful, you can handle the response if needed
+            $response_code = wp_remote_retrieve_response_code($response);
+            
+            $response_body = wp_remote_retrieve_body($response);
+            error_log('Webhook passed: ' . $response_body);
+        }
     }
 }
 ?>
