@@ -206,7 +206,7 @@ function post_data_to_webhook($post_id)
         $webhook_url = get_option('webhook_url');
         $site_id = get_option('site_id');
 
-        $concatenatedURL = $webhook_url . $site_id;
+        $concatenatedURL = $webhook_url;
         // print_r($concatenatedURL); die;
         // $concatenatedURL = "https://api.glaroo.com/wordpress/35";
 
