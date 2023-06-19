@@ -243,8 +243,8 @@ function post_data_to_webhook($post_id)
         if (is_wp_error($response)) {
             // Handle the error
             wp_send_json_error($response->get_error_message());
-            return;
             error_log('Webhook request failed: ' . $response->get_error_message());
+            return;
         } else {
             // The request was successful, you can handle the response if needed
             $response_code = wp_remote_retrieve_response_code($response);
@@ -364,8 +364,8 @@ function get_all_post_data_callback()
         if (is_wp_error($response)) {
             // Handle the error
             wp_send_json_error($response->get_error_message());
-            return;
             error_log('Webhook request failed: ' . $response->get_error_message());
+            return;
         } else {
             // The request was successful, you can handle the response if needed
             $response_code = wp_remote_retrieve_response_code($response);
@@ -373,6 +373,5 @@ function get_all_post_data_callback()
             $response_body = wp_remote_retrieve_body($response);
             error_log('Webhook passed: ' . $response_body);
         }
-    }
 }
 ?>
