@@ -231,6 +231,7 @@ function glaroo_post_data_to_webhook($post_id)
         $data = array(
             'title' => $post->post_title,
             'slug' => $relativeSlug,
+            'id' => $post->ID,
             'meta_data' => get_meta_data($post->ID),
             'taxonomy_data' => get_taxonomy_data($post->ID),
             'author_data' => get_author_data($post->post_author),
@@ -352,6 +353,7 @@ function glaroo_get_all_post_data_callback()
         $data = array(
             'title' => $post->post_title,
             'slug' => $relativeSlug,
+            'id' => $post->ID,
             'meta_data' => get_meta_data($post->ID),
             'taxonomy_data' => get_taxonomy_data($post->ID),
             'author_data' => get_author_data($post->post_author),
