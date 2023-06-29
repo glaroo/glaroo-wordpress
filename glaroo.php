@@ -285,6 +285,9 @@ function get_taxonomy_data($post_id)
             'name' => $term_single->name,
             'slug' => $term_single->slug,
             'description' => $term_single->description,
+            'taxonomy_name' => $term_single->taxonomy,
+            'taxonomy_id' => $term_single->term_taxonomy_id,
+            'parent_id' => $term_single->parent_id
         );
     }
     return $taxonomy_data;
