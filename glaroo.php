@@ -282,6 +282,8 @@ function get_taxonomy_data($post_id)
     $taxonomy_data = [];
     foreach ($term_list as $term_single) {
         $taxonomy_data[] = array(
+            'id' => $term_single->term_id,
+            'group' => $term_single->term_group,
             'name' => $term_single->name,
             'slug' => $term_single->slug,
             'description' => $term_single->description,
